@@ -92,6 +92,11 @@ def image_info(path):
             if len(raw) < 2:
                 raise ValueError("entry.png has a truncated JPEG header")
             (segment,) = struct.unpack(">H", raw)
+            if segment < 2:
+                # The length field counts its own two bytes, so a
+                # smaller value is corrupt; trusting it would make
+                # the seek below land inside the segment it skips.
+                raise ValueError("entry.png has a corrupt JPEG header")
             if code in JPEG_SOF:
                 frame = fh.read(5)
                 if len(frame) < 5:
